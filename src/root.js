@@ -185,13 +185,16 @@ Gun.dup = require('./dup');
 		if(text_is(tmp)){ tmp = [tmp] }
 		if(list_is(tmp)){
 			tmp = obj_map(tmp, function(url, i, map){
-				map(url, {url: url});
+				i = {}; i.id = i.url = url; map(url, i);
 			});
 			if(!obj_is(at.opt.peers)){ at.opt.peers = {}}
 			at.opt.peers = obj_to(tmp, at.opt.peers);
 		}
 		at.opt.peers = at.opt.peers || {};
-		obj_to(opt, at.opt); // copies options on to `at.opt` only if not already taken.
+		obj_map(opt, function each(v,k){
+			if(!obj_has(this, k) || text.is(v) || obj.empty(v)){ this[k] = v ; return }
+			obj_map(v, each, this[k]);
+		}, at.opt);
 		Gun.on('opt', at);
 		at.opt.uuid = at.opt.uuid || function(){ return state_lex() + text_rand(12) }
 		return gun;
